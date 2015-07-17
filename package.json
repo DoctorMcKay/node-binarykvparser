@@ -1,6 +1,6 @@
 {
 	"name": "binarykvparser",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Parses binary KeyValues, used especially in Steam",
 	"main": "index.js",
 	"dependencies": {
