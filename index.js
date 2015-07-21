@@ -62,9 +62,47 @@ exports.parse = function(buffer) {
 		}
 		
 		if(name) {
-			obj[name] = value;
+			obj[name] = convertObject(value);
 		}
 	}
 	
 	return obj;
+}
+
+/**
+ * Converts an object to an array if it's an array-like object
+ * @param Object obj
+ * @returns Object|Array
+ */
+function convertObject(obj) {
+	if(typeof obj !== 'object') {
+		return obj;
+	}
+
+	var keys = Object.keys(obj);
+
+	var i;
+	for(i = 0; i < keys.length; i++) {
+		keys[i] = parseInt(keys[i], 10);
+		if(isNaN(keys[i])) {
+			return obj;
+		}
+	}
+
+	keys.sort(function(a, b) {
+		if(a == b) {
+			return 0;
+		} else {
+			return a < b ? -1 : 1;
+		}
+	});
+
+	for(i = 0; i < keys.length; i++) {
+		if(keys[i] != i) {
+			return obj;
+		}
+	}
+
+	obj.length = keys.length;
+	return Array.prototype.slice.call(obj);
 }
