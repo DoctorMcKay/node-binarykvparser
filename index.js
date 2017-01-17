@@ -1,4 +1,4 @@
-var ByteBuffer = require('bytebuffer');
+var Long = require('long');
 
 var Type = {
 	None: 0,
@@ -12,61 +12,81 @@ var Type = {
 	End: 8
 };
 
-exports.parse = function(buffer) {
-	if(!ByteBuffer.isByteBuffer(buffer)) {
-		buffer = ByteBuffer.wrap(buffer, 'utf8', true);
+exports.parse = function(buffer, offset) {
+	if (buffer.toBuffer) {
+		// Convert it to a standard Buffer if it's a ByteBuffer
+		buffer = buffer.toBuffer();
 	}
 	
 	var obj = {};
 	var type, name, value;
 	
-	while(true) {
-		type = buffer.readByte();
+	if (typeof offset === 'undefined') {
+		offset = [0];
+	}
+	
+	if (!(offset instanceof Array)) {
+		offset = [offset]; // turn this into an array because it needs to be passed by reference later :/
+	}
+	
+	while (true) {
+		type = buffer.readUInt8(offset[0]);
+		offset[0] += 1;
 		
-		if(type == Type.End) {
+		if (type == Type.End) {
 			break;
 		}
 		
-		name = buffer.readCString();
+		name = readCString();
 		
-		if(type === Type.None && !name && !Object.keys(obj).length) {
+		if (type === Type.None && !name && !Object.keys(obj).length) {
 			// Root node
-			name = buffer.readCString();
+			name = readCString();
 		}
 		
-		switch(type) {
+		switch (type) {
 			case Type.None:
-				value = exports.parse(buffer);
+				value = exports.parse(buffer, offset);
 				break;
 			
 			case Type.String:
-				value = buffer.readCString();
+				value = readCString();
 				break;
 			
 			case Type.Int32:
 			case Type.Color:
 			case Type.Pointer:
-				value = buffer.readInt32();
+				value = buffer.readInt32LE(offset[0]);
+				offset[0] += 4;
 				break;
 			
 			case Type.UInt64:
-				value = buffer.readUint64();
+				value = new Long(buffer.readUInt32LE(offset[0]), buffer.readUInt32LE(offset[0] + 4), true);
+				offset[0] += 8;
 				break;
 			
 			case Type.Float32:
-				value = buffer.readFloat32();
+				value = buffer.readFloatLE(offset[0]);
+				offset[0] += 4;
 				break;
 			
 			default:
-				throw new Error("Unknown KV type " + type + " encountered at offset " + buffer.offset);
+				throw new Error("Unknown KV type " + type + " encountered at offset " + offset[0]);
 		}
 		
-		if(name) {
+		if (name) {
 			obj[name] = convertObject(value);
 		}
 	}
 	
 	return obj;
+	
+	function readCString() {
+		var end = buffer.indexOf(0, offset[0]);
+		var str = buffer.toString('utf8', offset[0], end);
+		offset[0] = end + 1;
+		return str;
+	}
 }
 
 /**
@@ -75,29 +95,29 @@ exports.parse = function(buffer) {
  * @returns Object|Array
  */
 function convertObject(obj) {
-	if(typeof obj !== 'object') {
+	if (typeof obj !== 'object') {
 		return obj;
 	}
 
 	var keys = Object.keys(obj);
 
 	var i;
-	for(i = 0; i < keys.length; i++) {
+	for (i = 0; i < keys.length; i++) {
 		keys[i] = parseInt(keys[i], 10);
-		if(isNaN(keys[i])) {
+		if (isNaN(keys[i])) {
 			return obj;
 		}
 	}
 
 	keys.sort(function(a, b) {
-		if(a == b) {
+		if (a == b) {
 			return 0;
 		} else {
 			return a < b ? -1 : 1;
 		}
 	});
 
-	for(i = 0; i < keys.length; i++) {
+	for (i = 0; i < keys.length; i++) {
 		if(keys[i] != i) {
 			return obj;
 		}
