@@ -39,13 +39,14 @@ exports.parse = function(buffer, offset) {
 		
 		name = readCString();
 		
+		if (type === Type.None && !name && !Object.keys(obj).length) {
+			// Root node
+			name = readCString();
+		}
+		
 		switch (type) {
 			case Type.None:
-				if (obj.hasOwnProperty(name)) {
-					value = obj[name];
-				} else {
-					value = exports.parse(buffer, offset);
-				}
+				value = exports.parse(buffer, offset);
 				break;
 			
 			case Type.String:
@@ -73,9 +74,9 @@ exports.parse = function(buffer, offset) {
 				throw new Error("Unknown KV type " + type + " encountered at offset " + offset[0]);
 		}
 		
-		if (name !== undefined) {
-	    obj[name] = convertObject(value);
-	  }
+		if (name) {
+			obj[name] = convertObject(value);
+		}
 	}
 	
 	return obj;
