@@ -9,6 +9,7 @@ var Type = {
 	WideString: 5,
 	Color: 6,
 	UInt64: 7,
+	Int64: 10, // signed
 	End: 8
 };
 
@@ -62,6 +63,11 @@ exports.parse = function(buffer, offset) {
 			
 			case Type.UInt64:
 				value = new Long(buffer.readUInt32LE(offset[0]), buffer.readUInt32LE(offset[0] + 4), true);
+				offset[0] += 8;
+				break;
+			
+			case Type.Int64:
+				value = new Long(buffer.readInt32LE(offset[0]), buffer.readInt32LE(offset[0] + 4), false);
 				offset[0] += 8;
 				break;
 			
