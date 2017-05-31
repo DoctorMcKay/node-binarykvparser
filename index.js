@@ -1,18 +1,24 @@
 var Long = require('long');
 
 var Type = {
-	None: 0,
-	String: 1,
-	Int32: 2,
-	Float32: 3,
-	Pointer: 4,
-	WideString: 5,
-	Color: 6,
-	UInt64: 7,
-	Int64: 10, // signed
-	End: 8
+	"None": 0,
+	"String": 1,
+	"Int32": 2,
+	"Float32": 3,
+	"Pointer": 4,
+	"WideString": 5,
+	"Color": 6,
+	"UInt64": 7,
+	"Int64": 10, // signed
+	"End": 8
 };
 
+/**
+ * Parse a BinaryKeyValues buffer to an object
+ * @param {Buffer|ByteBuffer} buffer
+ * @param {int} [offset=0] - Offset where you want to start, defaults to 0 (the beginning of the buffer)
+ * @returns {object}
+ */
 exports.parse = function(buffer, offset) {
 	if (buffer.toBuffer) {
 		// Convert it to a standard Buffer if it's a ByteBuffer
@@ -21,9 +27,14 @@ exports.parse = function(buffer, offset) {
 	
 	var obj = {};
 	var type, name, value;
+	var isRootAndWantsLength = false;
 	
 	if (typeof offset === 'undefined') {
 		offset = [0];
+	}
+
+	if (arguments[2] == 'I want the length please') {
+		isRootAndWantsLength = true;
 	}
 	
 	if (!(offset instanceof Array)) {
@@ -84,6 +95,10 @@ exports.parse = function(buffer, offset) {
 			obj[name] = convertObject(value);
 		}
 	}
+
+	if (isRootAndWantsLength) {
+		return offset[0];
+	}
 	
 	return obj;
 	
@@ -93,12 +108,23 @@ exports.parse = function(buffer, offset) {
 		offset[0] = end + 1;
 		return str;
 	}
-}
+};
+
+/**
+ * Get the length in bytes of the BinaryKV object that starts at the beginning of the provided buffer
+ * @param {Buffer|ByteBuffer} buffer
+ * @param {int} [offset=0] - Offset where you want to start, defaults to 0 (the beginning of the buffer)
+ * @returns {int} - Length of the object in bytes
+ */
+exports.getByteLength = function(buffer, offset) {
+	offset = offset || 0;
+	return exports.parse(buffer, offset, 'I want the length please') - offset;
+};
 
 /**
  * Converts an object to an array if it's an array-like object
- * @param Object obj
- * @returns Object|Array
+ * @param {object} obj
+ * @returns object|array
  */
 function convertObject(obj) {
 	if (typeof obj !== 'object') {

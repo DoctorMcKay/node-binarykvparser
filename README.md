@@ -6,11 +6,19 @@ This is not the same as VDF aka KeyValues. To parse that, use the [vdf module](h
 
 # Usage
 
-`require('binarykvparser')` returns the `BinaryKVParser` namespace, which contains one method:
+`require('binarykvparser')` returns the `BinaryKVParser` namespace, which contains two methods:
 
 ### parse(buffer[, offset])
 - `buffer` - Either a `Buffer` or a [`ByteBuffer`](https://www.npmjs.com/package/bytebuffer) to decode
 - `offset` - Optional. The offset where the parser should start reading. Default 0 (to start at the beginning of the buffer). No ending position required, as it will stop automatically once it reaches the end of the message (which may or may not be the end of the buffer)
+
+### getByteLength(buffer[, offset])
+- `buffer` - Either a `Buffer` or a [`ByteBuffer`](https://www.npmjs.com/package/bytebuffer) to decode
+- `offset` - Optional. The offset where the parser should start reading. Default 0 (to start at the beginning of the buffer). No ending position required, as it will stop automatically once it reaches the end of the message (which may or may not be the end of the buffer)
+
+**v2.2.0 or later is required to use this method**
+
+Returns the length in bytes of the BinaryKV object contained in the given `Buffer`.
 
 # Example
 
