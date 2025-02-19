@@ -10,6 +10,7 @@ var Type = {
 	"Color": 6,
 	"UInt64": 7,
 	"Int64": 10, // signed
+	"AlternateEnd": 11, // New KV Type
 	"End": 8
 };
 
@@ -44,8 +45,7 @@ exports.parse = function(buffer, offset) {
 	while (true) {
 		type = buffer.readUInt8(offset[0]);
 		offset[0] += 1;
-		
-		if (type == Type.End) {
+		if (type == Type.End || type == Type.AlternateEnd) {
 			break;
 		}
 		
