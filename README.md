@@ -1,5 +1,7 @@
 # BinaryKVParser
 
+UPD 19.02.2025 For parse KV from CS2 game store
+
 This lightweight module parses Binary KeyValues, which is a Valve-proprietary format used in Steam.
 
 This is not the same as VDF aka KeyValues. To parse that, use the [vdf module](https://www.npmjs.com/package/vdf).
