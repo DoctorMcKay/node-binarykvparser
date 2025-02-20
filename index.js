@@ -9,8 +9,9 @@ var Type = {
 	"WideString": 5,
 	"Color": 6,
 	"UInt64": 7,
+	"End": 8,
 	"Int64": 10, // signed
-	"End": 8
+	"AlternateEnd": 11
 };
 
 /**
@@ -44,8 +45,8 @@ exports.parse = function(buffer, offset) {
 	while (true) {
 		type = buffer.readUInt8(offset[0]);
 		offset[0] += 1;
-		
-		if (type == Type.End) {
+
+		if (type == Type.End || type == Type.AlternateEnd) {
 			break;
 		}
 		
